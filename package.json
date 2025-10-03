@@ -1,0 +1,23 @@
+{
+  "name": "texteditorwebapp",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/HysteriaLang/TextEditorWebApp#readme",
+  "bugs": {
+    "url": "https://github.com/HysteriaLang/TextEditorWebApp/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HysteriaLang/TextEditorWebApp.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "devDependencies": {
+    "netlify-cli": "^23.9.1"
+  }
+}
