@@ -136,62 +136,23 @@ function showNotification(message, type = 'success') {
 }
 
 // Update the backend URL for Netlify
-const API_BASE_URL = window.location.origin; // This will be your Netlify domain
+const API_BASE_URL = window.location.origin;
 
-// File Operations - Updated to use backend API
-function newFile() {
-    if (textEditor.isModified) {
-        const save = confirm('You have unsaved changes. Do you want to save before creating a new file?');
-        if (save) {
-            saveFile();
-        }
-    }
-    
-    textEditor.setContent('');
-    textEditor.setFileName('Untitled Document');
-    textEditor.updateStatus('New file created');
-    showNotification('New file created');
-}
-
+// File Operations - Updated for Netlify Functions
 async function openFile() {
     const fileInput = document.getElementById('fileInput');
     fileInput.onchange = async function(event) {
         const file = event.target.files[0];
         if (file && file.type === 'text/plain') {
-            try {
-                // Use backend API to load file
-                const formData = new FormData();
-                formData.append('file', file);
-                
-                const response = await fetch(`${API_BASE_URL}/api/load`, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    textEditor.setContent(result.content);
-                    textEditor.setFileName(result.filename);
-                    textEditor.updateStatus(`Opened: ${result.filename}`);
-                    showNotification(`File "${result.filename}" opened successfully`);
-                } else {
-                    showNotification(result.message || 'Failed to open file', 'error');
-                }
-            } catch (error) {
-                console.error('Error opening file:', error);
-                showNotification('Error opening file. Using fallback method.', 'warning');
-                
-                // Fallback to client-side FileReader if backend fails
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    textEditor.setContent(e.target.result);
-                    textEditor.setFileName(file.name);
-                    textEditor.updateStatus(`Opened: ${file.name}`);
-                    showNotification(`File "${file.name}" opened successfully`);
-                };
-                reader.readAsText(file);
-            }
+            // Use client-side FileReader since serverless file upload is complex
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                textEditor.setContent(e.target.result);
+                textEditor.setFileName(file.name);
+                textEditor.updateStatus(`Opened: ${file.name}`);
+                showNotification(`File "${file.name}" opened successfully`);
+            };
+            reader.readAsText(file);
         } else {
             showNotification('Please select a valid .txt file', 'error');
         }
@@ -379,19 +340,27 @@ window.addEventListener('beforeunload', (e) => {
 // Add a function to check if backend is available
 async function checkBackendConnection() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/`);
-        const result = await response.json();
-        if (result.message) {
-            console.log('Backend connected:', result.message);
-            showNotification('Connected to server', 'success');
-            return true;
+        const response = await fetch(`${API_BASE_URL}/api/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.message) {
+                console.log('Backend connected:', result.message);
+                showNotification('Connected to server', 'success');
+                return true;
+            }
         }
+        throw new Error('Backend not responding');
     } catch (error) {
         console.log('Backend not available, using offline mode');
         showNotification('Server not available - using offline mode', 'warning');
         return false;
     }
-    return false;
 }
 
 // Check backend connection when page loads

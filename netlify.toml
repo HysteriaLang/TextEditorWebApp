@@ -1,7 +1,8 @@
 [build]
-  command = "pip install -r requirements.txt"
-  functions = "api"
   publish = "public"
+
+[functions]
+  directory = "api"
 
 [[redirects]]
   from = "/api/*"

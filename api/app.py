@@ -1,17 +1,12 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-import os
-import tempfile
 import json
-import base64
 from datetime import datetime
-from werkzeug.datastructures import FileStorage
-from io import BytesIO
 
 app = Flask(__name__)
 CORS(app)
 
-# Store for temporary file handling
+# Store for temporary file handling (in-memory for serverless)
 temp_files = {}
 
 @app.route('/')
@@ -29,16 +24,11 @@ def save_file():
         if not filename.endswith('.txt'):
             filename += '.txt'
         
-        # For Netlify, we'll return the content as base64 for download
-        content_bytes = content.encode('utf-8')
-        content_b64 = base64.b64encode(content_bytes).decode('utf-8')
-        
         # Store file info (in memory for serverless)
         file_id = len(temp_files)
         temp_files[file_id] = {
             'filename': filename,
             'content': content,
-            'content_b64': content_b64
         }
         
         return jsonify({
@@ -99,58 +89,143 @@ def load_file():
 
 # Netlify Functions handler
 def handler(event, context):
-    import io
-    import sys
-    from urllib.parse import parse_qs, unquote
-    
-    # Handle the request
-    method = event.get('httpMethod', 'GET')
-    path = event.get('path', '/')
-    headers = event.get('headers', {})
-    body = event.get('body', '')
-    
-    # Create WSGI environ
-    environ = {
-        'REQUEST_METHOD': method,
-        'PATH_INFO': path,
-        'QUERY_STRING': event.get('queryStringParameters') or '',
-        'CONTENT_TYPE': headers.get('content-type', ''),
-        'CONTENT_LENGTH': str(len(body)) if body else '0',
-        'wsgi.input': io.BytesIO(body.encode() if body else b''),
-        'wsgi.errors': sys.stderr,
-        'wsgi.version': (1, 0),
-        'wsgi.multithread': False,
-        'wsgi.multiprocess': True,
-        'wsgi.run_once': False,
-        'wsgi.url_scheme': 'https',
-        'SERVER_NAME': headers.get('host', 'localhost'),
-        'SERVER_PORT': '443',
-    }
-    
-    # Add headers to environ
-    for key, value in headers.items():
-        key = 'HTTP_' + key.upper().replace('-', '_')
-        environ[key] = value
-    
-    response_data = []
-    
-    def start_response(status, response_headers):
-        response_data.append(status)
-        response_data.append(response_headers)
-    
     try:
-        result = app(environ, start_response)
-        body = b''.join(result).decode('utf-8')
+        path = event.get('path', '')
+        method = event.get('httpMethod', 'GET')
+        body = event.get('body', '')
         
-        return {
-            'statusCode': int(response_data[0].split()[0]),
-            'headers': {header[0]: header[1] for header in response_data[1]},
-            'body': body
-        }
+        # Parse body if it exists
+        if body:
+            try:
+                body_data = json.loads(body)
+            except:
+                body_data = {}
+        else:
+            body_data = {}
+        
+        # Route handling
+        if path == '/api/' or path == '/api':
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+                },
+                'body': json.dumps({"message": "Text Editor API is running"})
+            }
+        
+        elif path.startswith('/api/save') and method == 'POST':
+            filename = body_data.get('filename', f'document_{datetime.now().strftime("%Y%m%d_%H%M%S")}.txt')
+            content = body_data.get('content', '')
+            
+            # Ensure filename ends with .txt
+            if not filename.endswith('.txt'):
+                filename += '.txt'
+            
+            # Store file info (in memory for serverless)
+            file_id = len(temp_files)
+            temp_files[file_id] = {
+                'filename': filename,
+                'content': content,
+            }
+            
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+                },
+                'body': json.dumps({
+                    'success': True, 
+                    'message': 'File saved successfully',
+                    'filename': filename,
+                    'file_id': file_id,
+                    'download_url': f'/api/download/{file_id}'
+                })
+            }
+        
+        elif path.startswith('/api/download/') and method == 'GET':
+            file_id_str = path.split('/')[-1]
+            try:
+                file_id = int(file_id_str)
+                if file_id in temp_files:
+                    file_info = temp_files[file_id]
+                    return {
+                        'statusCode': 200,
+                        'headers': {
+                            'Content-Type': 'text/plain',
+                            'Content-Disposition': f'attachment; filename="{file_info["filename"]}"',
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        'body': file_info['content']
+                    }
+                else:
+                    return {
+                        'statusCode': 404,
+                        'headers': {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        'body': json.dumps({'error': 'File not found'})
+                    }
+            except ValueError:
+                return {
+                    'statusCode': 400,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps({'error': 'Invalid file ID'})
+                }
+        
+        elif path.startswith('/api/load') and method == 'POST':
+            # For file upload, we need to handle multipart form data
+            # This is complex in serverless, so let's use the fallback method
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'success': False, 
+                    'message': 'File upload not supported in serverless mode. Using client-side fallback.'
+                })
+            }
+        
+        # Handle OPTIONS for CORS
+        elif method == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type',
+                    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+                },
+                'body': ''
+            }
+        
+        else:
+            return {
+                'statusCode': 404,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'error': 'Not found'})
+            }
+    
     except Exception as e:
         return {
             'statusCode': 500,
-            'headers': {'Content-Type': 'application/json'},
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
             'body': json.dumps({'error': str(e)})
         }
 
