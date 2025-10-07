@@ -1,15 +1,24 @@
 [build]
+  command = "CI= npm run build"
+  functions = "netlify/functions"
   publish = "public"
 
 [functions]
-  directory = "api"
+  external_node_modules = ["express", "ejs"]
+  node_bundler = "esbuild"
+  included_files = ["views/*/**", "public/*/**"]
 
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/app/:splat"
+  from = "/images/*"
+  to = "/images/:splat"
   status = 200
 
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from = "/css/*"
+  to = "/css/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/js/*"
+  to = "/js/:splat"
   status = 200

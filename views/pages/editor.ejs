@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head') %>
+    <title><%= title %></title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    
+    <main class="editor-main">
+        <%- include('../partials/toolbar') %>
+        
+        <div class="editor-container">
+            <div class="editor-sidebar">
+                <div class="file-info">
+                    <h4>Document Info</h4>
+                    <p>File: <span id="currentFileName">Untitled</span></p>
+                    <p>Lines: <span id="lineCount">1</span></p>
+                    <p>Characters: <span id="charCount">0</span></p>
+                    <p>Words: <span id="wordCount">0</span></p>
+                </div>
+            </div>
+            
+            <div class="editor-workspace">
+                <textarea id="textEditor" placeholder="Start typing your document..."></textarea>
+            </div>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+    <script src="/js/editor.js"></script>
+</body>
+</html>

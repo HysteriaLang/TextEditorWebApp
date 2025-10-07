@@ -1,59 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text Editor</title>
-    <link rel="stylesheet" href="index.css">
-</head>
-<body>
-    <div class="container">
-        <!-- Menu Bar -->
-        <div class="menu-bar">
-            <div class="menu-group">
-                <button onclick="newFile()" title="New File (Ctrl+N)">📄 New</button>
-                <button onclick="openFile()" title="Open File (Ctrl+O)">📁 Open</button>
-                <button onclick="saveFile()" title="Save File (Ctrl+S)">💾 Save</button>
-            </div>
-            <div class="menu-group">
-                <button onclick="cutText()" title="Cut (Ctrl+X)">✂️ Cut</button>
-                <button onclick="copyText()" title="Copy (Ctrl+C)">📋 Copy</button>
-                <button onclick="pasteText()" title="Paste (Ctrl+V)">📄 Paste</button>
-            </div>
-            <div class="menu-group">
-                <button onclick="undoAction()" title="Undo (Ctrl+Z)">↶ Undo</button>
-                <button onclick="redoAction()" title="Redo (Ctrl+Y)">↷ Redo</button>
-            </div>
-        </div>
-
-        <!-- File Info -->
-        <div class="file-info">
-            <span id="fileName">Untitled Document</span>
-            <span class="modified-indicator" id="modifiedIndicator"></span>
-        </div>
-
-        <!-- Text Editor -->
-        <div class="editor-container">
-            <textarea 
-                id="textEditor" 
-                placeholder="Start typing your document..."
-                spellcheck="true">
-            </textarea>
-        </div>
-
-        <!-- Status Bar -->
-        <div class="status-bar">
-            <span id="statusText">Ready</span>
-            <div class="status-right">
-                <span id="cursorPosition">Line 1, Column 1</span>
-                <span id="wordCount">0 words, 0 characters</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Hidden file input for opening files -->
-    <input type="file" id="fileInput" accept=".txt" style="display: none;">
-
-    <script src="index.js"></script>
-</body>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>My Personal Site</title>
+    </head>
+    <body>
+        <script src="./js/redirect.js"></script>
+    </body>
 </html>

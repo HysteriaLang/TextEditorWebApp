@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <%- include('../partials/head') %>
+    <title><%= title %></title>
+</head>
+<body>
+    <%- include('../partials/header') %>
+    
+    <main class="main-content">
+        <div class="welcome-container">
+            <h1>Text Editor</h1>
+            <p>A modern, dark-themed text editor with full functionality</p>
+            
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="createNew()">
+                    <i class="icon-file"></i> New Document
+                </button>
+                <button class="btn btn-secondary" onclick="openFile()">
+                    <i class="icon-folder"></i> Open File
+                </button>
+            </div>
+            
+            <div class="recent-files">
+                <h3>Recent Files</h3>
+                <ul id="recentFilesList">
+                    <li>No recent files</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <%- include('../partials/footer') %>
+    <script src="/js/main.js"></script>
+</body>
+</html>
