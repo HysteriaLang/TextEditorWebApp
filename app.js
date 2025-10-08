@@ -25,8 +25,11 @@ app.use( express.static( path.join( __dirname, "../../public" ) ) );
 
 const ROUTE_START = "/.netlify/functions/server";
 
-app.use( ROUTE_START, router );
 app.use(`${ROUTE_START}/index`, IndexController);
 app.use(`${ROUTE_START}/editor`, EditorController);
+
+app.get(ROUTE_START, (req, res) => {
+    res.render('pages/index', { title: 'Text Editor' });
+});
 
 module.exports = app;

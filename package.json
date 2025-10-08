@@ -16,7 +16,8 @@
   "main": "index.js",
  "scripts": {
     "start": "netlify dev",
-    "build": "netlify deploy --prod",
+    "deploy": "netlify deploy --prod",
+    "build": "echo \"Build completed successfully\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
